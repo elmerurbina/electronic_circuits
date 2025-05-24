@@ -19,12 +19,12 @@ I3_val = sol[I3].evalf()
 # Corriente real por cada resistor
 I_R1 = I1_val - I2_val  # Entre mallas 1 y 2
 I_R2 = I2_val           # Solo malla 2
-I_R3 = I2_val - I3_val  # Entre mallas 2 y 3
+I_R3 = abs(I2_val - I3_val)  # Magnitud para que sea positiva
 I_R4 = I1_val - I3_val  # Entre mallas 1 y 3
 I_R5 = I3_val           # Solo malla 3
 
-# Corriente total (sale de la batería, malla 1)
-I_bateria = I1_val
+# La corriente de la batería es la misma que pasa por R1
+I_bateria = I_R1
 
 # Resistencia total equivalente
 R_total = V / I_bateria
