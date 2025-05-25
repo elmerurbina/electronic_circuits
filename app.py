@@ -1,5 +1,8 @@
+import matplotlib
+matplotlib.use('TkAgg')
 from sympy import symbols, Eq, solve
 import numpy as np
+import matplotlib.pyplot as plt
 import sounddevice as sd
 
 class CircuitSolver:
@@ -7,17 +10,12 @@ class CircuitSolver:
         self.I1, self.I2, self.I3 = symbols('I1 I2 I3')
 
     def setup_equations(self):
-        # Ecuación 1: Ley de corrientes de Kirchhoff
+        # Ecuación de corriente (nodo)
         eq1 = Eq(self.I1, self.I2 + self.I3)
-
-        # Se aplican ley de los voltajes de Kirchhoff
-        # Rama del centro, recorrido horario
-        # dio negativo entonces el recorrido es contrario)
+        # Ecuación de malla central
         eq2 = Eq(-8*self.I1 - 6*self.I2 + 4, 0)
-
-        # Rama derecha (recorrido horario)
+        # Ecuación de malla derecha
         eq3 = Eq(8*self.I1 + 4*self.I3 - 12, 0)
-
         return [eq1, eq2, eq3]
 
     def solve(self):
@@ -48,24 +46,44 @@ class MusicPhysics:
             print(f"{name} → {freq:.2f} Hz (corriente: {current:.4f} A)")
             self.play_tone(freq)
 
+class CurrentPlotter:
+    def __init__(self):
+        pass
+
+    def plot_currents(self, currents):
+        labels = list(currents.keys())
+        values = [abs(float(currents[k])) for k in labels]
+
+        plt.figure(figsize=(6, 4))
+        plt.bar(labels, values, color='skyblue')
+        plt.title('Corrientes en cada rama del circuito')
+        plt.xlabel('Corriente')
+        plt.ylabel('Amperios (A)')
+        plt.grid(True, linestyle='--', alpha=0.5)
+        plt.tight_layout()
+        plt.show()
+
 def main():
     solver = CircuitSolver()
     currents = solver.solve()
 
-
     I1, I2, I3 = solver.I1, solver.I2, solver.I3
+    currents[I2] = -currents[I2]  # Ajustamos signo de I2
 
-    # Invertimos el signo de I2 porque sabemos que su dirección real es contraria
-    currents[I2] = -currents[I2]
-
-    print("⚡ Corrientes en cada rama (ajuste de dirección para I2):")
+    print("⚡ Corrientes en cada rama:")
     for sym, current in currents.items():
         print(f"{sym} = {float(current):.4f} A")
 
+    # Inicializamos música y graficador
     music = MusicPhysics()
+    plotter = CurrentPlotter()
 
-    # Convertimos claves simbólicas a strings para impresión más clara
-    music.play_currents({str(k): v for k, v in currents.items()})
+    # Convertimos claves simbólicas a strings
+    currents_str = {str(k): v for k, v in currents.items()}
+
+    # Reproducir tonos y graficar
+    music.play_currents(currents_str)
+    plotter.plot_currents(currents_str)
 
 if __name__ == "__main__":
     main()
